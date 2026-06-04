@@ -1,0 +1,158 @@
+<p-toast position="top-center"></p-toast>
+
+<p-dialog
+    [(visible)]="modalService.visible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="false"
+    [showHeader]="false"
+    [breakpoints]="{ '768px': '95vw' }"
+    [style]="{ width: '480px' }"
+    styleClass="!p-0 !overflow-hidden rounded-2xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50"
+    contentStyleClass="!p-0"
+    (onHide)="onClose()">
+
+    <div class="flex flex-col">
+
+        <!-- ─── Header gradient ───────────────────────────────────────────── -->
+        <div class="relative bg-gradient-to-br from-emerald-500 via-emerald-600 to-blue-600 px-8 pt-10 pb-14 text-white overflow-hidden flex-shrink-0">
+
+            <!-- Cercles décoratifs -->
+            <div class="absolute -top-8 -right-8 w-40 h-40 bg-white/10 rounded-full"></div>
+            <div class="absolute top-4 right-16 w-16 h-16 bg-white/5 rounded-full"></div>
+            <div class="absolute -bottom-10 -left-6 w-32 h-32 bg-white/5 rounded-full"></div>
+
+            <!-- Icône cadenas -->
+            <div class="relative w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 shadow-lg border border-white/20">
+                <i class="pi pi-lock text-white text-2xl"></i>
+            </div>
+
+            <h2 class="relative text-2xl font-bold mb-1 tracking-tight">Bon retour !</h2>
+            <p class="relative text-emerald-100 text-sm">Connectez-vous pour accéder à ArchiCore</p>
+
+            <!-- Bouton fermer -->
+            <button
+                class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white"
+                (click)="onClose()">
+                <i class="pi pi-times text-sm"></i>
+            </button>
+        </div>
+
+        <!-- ─── Formulaire ────────────────────────────────────────────────── -->
+        <div class="bg-white dark:bg-slate-900 px-8 pt-8 pb-8 -mt-5 rounded-t-3xl relative">
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+
+                <!-- Email -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        Adresse email
+                    </label>
+                    <div class="relative">
+                        <i class="pi pi-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm z-10"></i>
+                        <input
+                            formControlName="email"
+                            type="email"
+                            placeholder="vous@exemple.com"
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all text-sm" />
+                    </div>
+                    @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+                        <small class="text-red-500 flex items-center gap-1 text-xs">
+                            <i class="pi pi-exclamation-circle"></i>
+                            Un email valide est requis.
+                        </small>
+                    }
+                </div>
+
+                <!-- Mot de passe -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        Mot de passe
+                    </label>
+                    <div class="relative">
+                        <i class="pi pi-shield absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm z-10"></i>
+                        <input
+                            [type]="showPassword() ? 'text' : 'password'"
+                            formControlName="password"
+                            placeholder="••••••••"
+                            class="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all text-sm" />
+                        <button
+                            type="button"
+                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                            (click)="togglePassword()">
+                            <i [class]="showPassword() ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
+                        </button>
+                    </div>
+                    @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+                        <small class="text-red-500 flex items-center gap-1 text-xs">
+                            <i class="pi pi-exclamation-circle"></i>
+                            Le mot de passe doit faire au moins 6 caractères.
+                        </small>
+                    }
+                </div>
+
+                <!-- Se souvenir de moi -->
+                <div class="flex items-center gap-3 -mt-1">
+                    <input
+                        type="checkbox"
+                        id="rememberMe"
+                        formControlName="rememberMe"
+                        class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 accent-emerald-500 cursor-pointer" />
+                    <label
+                        for="rememberMe"
+                        class="text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+                        Se souvenir de moi
+                    </label>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex flex-col gap-3 mt-2">
+                    <button
+                        type="submit"
+                        [disabled]="loginForm.invalid || loading()"
+                        class="w-full py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-blue-500 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2 text-sm">
+                        @if (loading()) {
+                            <i class="pi pi-spin pi-spinner"></i>
+                            <span>Connexion en cours...</span>
+                        } @else {
+                            <i class="pi pi-sign-in"></i>
+                            <span>Se connecter</span>
+                        }
+                    </button>
+
+                    <button
+                        type="button"
+                        (click)="onClose()"
+                        class="w-full py-3 rounded-xl font-medium text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-all duration-200 border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                        Annuler
+                    </button>
+                </div>
+
+                <!-- Séparateur -->
+                <div class="flex items-center gap-3 mt-1">
+                    <div class="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                    <span class="text-xs text-slate-400">Accès sécurisé</span>
+                    <div class="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                </div>
+
+                <!-- Badges sécurité -->
+                <div class="flex items-center justify-center gap-4 pb-1">
+                    <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                        <i class="pi pi-shield text-emerald-500"></i>
+                        <span>Chiffré SSL</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                        <i class="pi pi-lock text-emerald-500"></i>
+                        <span>Données protégées</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                        <i class="pi pi-verified text-emerald-500"></i>
+                        <span>Authentifié</span>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</p-dialog>

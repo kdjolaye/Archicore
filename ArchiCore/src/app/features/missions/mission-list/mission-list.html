@@ -1,0 +1,150 @@
+<div class="animate-fadein-up">
+    <app-breadcrumb></app-breadcrumb>
+
+    <p-card styleClass="mt-4 shadow-xl border border-slate-200/50 dark:border-slate-800/50 rounded-2xl overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+        
+        <ng-template pTemplate="header">
+            <div class="px-6 pt-6 pb-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <i class="pi pi-briefcase text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-50">Missions</h2>
+                        <p class="text-slate-500 text-sm">Dossier : <span class="font-bold text-slate-700 dark:text-slate-200">{{ codeDossier() }}</span></p>
+                    </div>
+                </div>
+            </div>
+        </ng-template>
+
+        <!-- ─── Barre d'actions : compteur + bouton création ─────────────────── -->
+        <div class="mt-6 px-6 flex justify-between items-center">
+            <p class="text-sm text-slate-500 font-medium">
+                Total : <span class="text-slate-900 dark:text-slate-100">{{ missions().length }} missions</span>
+            </p>
+
+            <!-- Bouton "Nouvelle Mission" : SUPER_ADMIN et ADMIN_PRINCIPAL uniquement -->
+            @if (canCreate()) {
+                <p-button 
+                    label="Nouvelle Mission" 
+                    icon="pi pi-plus" 
+                    [routerLink]="['/dossiers', codeDossier(), 'missions', 'new']"
+                    styleClass="bg-gradient-to-r from-primary to-primary-600 border-none shadow-lg hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 rounded-xl px-6">
+                </p-button>
+            }
+        </div>
+
+        <!-- ─── Tableau des missions ──────────────────────────────────────────── -->
+        <p-table 
+            #dt 
+            [value]="missions()" 
+            [loading]="loading()" 
+            [rows]="10" 
+            [paginator]="true" 
+            styleClass="p-datatable-lg mt-6"
+            responsiveLayout="stack"
+            [rowHover]="true">
+            
+            <!-- En-tête du tableau -->
+            <ng-template pTemplate="header">
+                <tr class="bg-slate-100 dark:bg-slate-800 border-y border-slate-200 dark:border-slate-700">
+                    <th class="py-4 px-4 font-semibold text-slate-600 dark:text-slate-300">Code Mission</th>
+                    <th class="py-4 px-4 font-semibold text-slate-600 dark:text-slate-300">Exercice</th>
+                    <th class="py-4 px-4 font-semibold text-slate-600 dark:text-slate-300 text-center">Statut</th>
+                    <th class="py-4 px-4 font-semibold text-slate-600 dark:text-slate-300 text-right w-32">Actions</th>
+                </tr>
+            </ng-template>
+
+            <!-- Corps du tableau : une ligne par mission -->
+            <ng-template pTemplate="body" let-mission>
+                <tr class="cursor-pointer bg-surface-0 dark:bg-surface-900 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors border-b border-surface-200 dark:border-surface-800 group"
+                    (click)="viewDocuments(mission.codeMission)">
+
+                    <!-- Code mission -->
+                    <td class="py-4 px-4">
+                        <span class="font-bold text-slate-900 dark:text-slate-100">{{ mission.codeMission }}</span>
+                    </td>
+
+                    <!-- Exercice -->
+                    <td class="py-4 px-4 text-slate-600 dark:text-slate-400">
+                        {{ mission.exercice }}
+                    </td>
+
+                    <!-- Statut avec badge coloré -->
+                    <td class="py-4 px-4 text-center">
+                        <p-tag 
+                            [value]="mission.statut" 
+                            [severity]="getStatusSeverity(mission.statut)" 
+                            styleClass="rounded-full px-3">
+                        </p-tag>
+                    </td>
+
+                    <!-- Actions par ligne -->
+                    <td class="py-4 px-4 text-right">
+                        <div class="flex gap-1 justify-end">
+
+                            <!-- Voir détails : visible par tous les rôles -->
+                            <p-button 
+                                icon="pi pi-eye" 
+                                [rounded]="true" 
+                                [text]="true" 
+                                severity="info"
+                                pTooltip="Voir détails"
+                                tooltipPosition="top"
+                                (onClick)="$event.stopPropagation(); viewDetail(mission.codeMission)">
+                            </p-button>
+
+                            <!-- Modifier : SUPER_ADMIN et ADMIN_PRINCIPAL toujours,
+                                           ADMIN uniquement si assigné à cette mission -->
+                            @if (canEditMission(mission.codeMission)) {
+                                <p-button 
+                                    icon="pi pi-pencil" 
+                                    [rounded]="true" 
+                                    [text]="true" 
+                                    severity="warn"
+                                    pTooltip="Modifier"
+                                    tooltipPosition="top"
+                                    (onClick)="$event.stopPropagation(); editMission(mission.codeMission)">
+                                </p-button>
+                            }
+
+                            <!-- Documents : visible par tous les rôles -->
+                            <p-button 
+                                icon="pi pi-folder-open" 
+                                [rounded]="true" 
+                                [text]="true" 
+                                severity="primary"
+                                pTooltip="Documents"
+                                tooltipPosition="top"
+                                (onClick)="$event.stopPropagation(); viewDocuments(mission.codeMission)">
+                            </p-button>
+
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <!-- Message si aucune mission trouvée -->
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="4" class="text-center py-12">
+                        <i class="pi pi-inbox text-4xl text-slate-300 mb-2"></i>
+                        <p class="text-slate-500">Aucune mission pour ce dossier.</p>
+                        
+                        <!-- Bouton création affiché uniquement pour SUPER_ADMIN et ADMIN_PRINCIPAL -->
+                        @if (canCreate()) {
+                            <p-button 
+                                label="Créer la première mission" 
+                                icon="pi pi-plus" 
+                                [text]="true"
+                                [routerLink]="['/dossiers', codeDossier(), 'missions', 'new']"
+                                styleClass="mt-4">
+                            </p-button>
+                        }
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </p-card>
+</div>

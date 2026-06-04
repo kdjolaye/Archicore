@@ -1,0 +1,116 @@
+<div class="animate-fadein-up">
+    <app-breadcrumb></app-breadcrumb>
+
+    <p-card styleClass="mt-4 shadow-xl border border-slate-200/50 dark:border-slate-800/50 rounded-2xl overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+        
+        <ng-template pTemplate="header">
+            <div class="px-6 pt-6 pb-2">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-50">Liste des Dossiers</h2>
+                <p class="text-slate-500 mt-1">Gérez les dossiers clients et leurs archives</p>
+            </div>
+        </ng-template>
+
+        <div class="mt-6 px-6 flex justify-between items-center">
+            <p class="text-sm text-slate-500 font-medium">Total : <span class="text-slate-900 dark:text-slate-100">{{ dossiers().length }} dossiers</span></p>
+            
+            <!-- Bouton Nouveau Dossier : SUPER_ADMIN et ADMIN_PRINCIPAL uniquement -->
+@if (authService.hasRole(['SUPER_ADMIN', 'ADMIN_PRINCIPAL'])) {
+    <p-button 
+        label="Nouveau Dossier" 
+        icon="pi pi-plus" 
+        [routerLink]="['/dossiers', 'new']"
+        styleClass="bg-gradient-to-r from-primary to-primary-600 border-none shadow-lg hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300 rounded-xl px-6">
+    </p-button>
+}
+        </div>
+
+        <p-table 
+            #dt 
+            [value]="dossiers()" 
+            [loading]="loading()" 
+            [rows]="10" 
+            [paginator]="true" 
+            [globalFilterFields]="['codeDossier', 'raisonSociale']"
+            styleClass="p-datatable-lg mt-6"
+            responsiveLayout="stack"
+            [rowHover]="true">
+            
+            <ng-template pTemplate="caption">
+                <div class="flex items-center justify-between flex-wrap gap-4 px-2">
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200">Clients</h3>
+                    <p-iconfield iconPosition="left">
+                        <p-inputicon styleClass="pi pi-search"></p-inputicon>
+                        <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Rechercher un dossier..." class="w-full md:w-80 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50" />
+                    </p-iconfield>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="header">
+                <tr class="bg-slate-100 dark:bg-slate-800 border-y border-slate-200 dark:border-slate-700">
+                    <th pSortableColumn="codeDossier" class="py-4 px-4 font-semibold text-slate-600 dark:text-slate-300">Code <p-sortIcon field="codeDossier"></p-sortIcon></th>
+                    <th pSortableColumn="raisonSociale" class="py-4 px-4 font-semibold text-slate-600 dark:text-slate-300">Raison Sociale <p-sortIcon field="raisonSociale"></p-sortIcon></th>
+                    <th class="py-4 px-4 font-semibold text-slate-600 dark:text-slate-300">Contact</th>
+                    <th class="py-4 px-4 font-semibold text-slate-600 dark:text-slate-300 text-right w-32">Actions</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-dossier>
+                <tr class="cursor-pointer bg-surface-0 dark:bg-surface-900 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors border-b border-surface-200 dark:border-surface-800 group"
+                    (click)="viewMissions(dossier.codeDossier)">
+                    <td class="py-4 px-4">
+                        <span class="font-bold text-primary bg-primary/5 px-3 py-1 rounded-lg">{{ dossier.codeDossier }}</span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <span class="font-semibold text-slate-900 dark:text-slate-50">{{ dossier.raisonSociale }}</span>
+                    </td>
+                    <td class="py-4 px-4">
+                        <div class="flex flex-col text-sm text-slate-500 dark:text-slate-400">
+                            <span class="flex items-center gap-1"><i class="pi pi-envelope text-xs"></i> {{ dossier.email }}</span>
+                            <span class="flex items-center gap-1"><i class="pi pi-phone text-xs"></i> {{ dossier.phone }}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-4 text-right">
+                        <div class="flex gap-1 justify-end">
+                            <p-button 
+                                icon="pi pi-eye" 
+                                [rounded]="true" 
+                                [text]="true" 
+                                severity="info"
+                                pTooltip="Voir détails"
+                                (onClick)="$event.stopPropagation(); viewDetail(dossier.codeDossier)">
+                            </p-button>
+                            <!-- Modifier : SUPER_ADMIN et ADMIN_PRINCIPAL uniquement -->
+@if (authService.hasRole(['SUPER_ADMIN', 'ADMIN_PRINCIPAL'])) {
+    <p-button 
+        icon="pi pi-pencil" 
+        [rounded]="true" 
+        [text]="true" 
+        severity="warn"
+        pTooltip="Modifier"
+        (onClick)="$event.stopPropagation(); editDossier(dossier.codeDossier)">
+    </p-button>
+}
+                            <p-button 
+                                icon="pi pi-folder-open" 
+                                [rounded]="true" 
+                                [text]="true" 
+                                severity="primary"
+                                pTooltip="Missions"
+                                (onClick)="$event.stopPropagation(); viewMissions(dossier.codeDossier)">
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="4" class="text-center py-12">
+                        <i class="pi pi-inbox text-4xl text-slate-300 mb-2"></i>
+                        <p class="text-slate-500">Aucun dossier trouvé.</p>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-card>
+</div>

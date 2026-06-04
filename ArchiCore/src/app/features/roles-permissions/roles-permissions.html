@@ -1,0 +1,316 @@
+<div class="animate-fadein-up max-w-7xl mx-auto p-4 md:p-8">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div class="flex items-center gap-4">
+            <button 
+                (click)="goBack()" 
+                pTooltip="Retour à la Gestion des Utilisateurs"
+                tooltipPosition="top"
+                class="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i class="pi pi-arrow-left"></i>
+            </button>
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">Rôles & Droits</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Configurez les droits d'accès et gérez les rôles d'application</p>
+            </div>
+        </div>
+        
+        <!-- Onglets / Sélections rapides -->
+        <div class="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/30 dark:border-slate-700/30">
+            <button 
+                (click)="activeTab.set('roles')"
+                class="px-5 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+                [ngClass]="activeTab() === 'roles' ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-md shadow-slate-200/50 dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
+                <i class="pi pi-shield"></i>
+                Rôles
+            </button>
+            <button 
+                (click)="activeTab.set('permissions')"
+                class="px-5 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+                [ngClass]="activeTab() === 'permissions' ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-md shadow-slate-200/50 dark:shadow-none' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
+                <i class="pi pi-key"></i>
+                Permissions
+            </button>
+        </div>
+    </div>
+
+    <!-- ONGLET RÔLES -->
+    @if (activeTab() === 'roles') {
+        <p-card styleClass="shadow-2xl border-none rounded-3xl overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">Liste des rôles applicatifs</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Associez des privilèges précis aux différents profils d'utilisateurs</p>
+                </div>
+                <p-button 
+                    label="Nouveau Rôle" 
+                    icon="pi pi-plus" 
+                    (onClick)="openCreateRoleDialog()"
+                    styleClass="bg-gradient-to-r from-emerald-500 to-blue-500 border-none shadow-md shadow-emerald-500/20 rounded-xl px-5 py-2.5 font-semibold text-sm hover:shadow-lg transition-all hover:-translate-y-0.5">
+                </p-button>
+            </div>
+
+            <p-table 
+                [value]="roles()" 
+                [loading]="loadingRoles()"
+                [paginator]="true" 
+                [rows]="10"
+                [rowHover]="true"
+                responsiveLayout="scroll"
+                styleClass="p-datatable-sm">
+                
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">Nom du Rôle</th>
+                        <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">Permissions assignées</th>
+                        <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4 text-center w-36">Actions</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-role>
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800">
+                        <td class="py-4 font-bold text-slate-800 dark:text-slate-200">
+                            {{ getRoleLabel(role.name) }}
+                            <span class="block text-xs font-normal text-slate-400 mt-0.5">{{ role.name }}</span>
+                        </td>
+                        <td class="py-4">
+                            <div class="flex flex-wrap gap-1.5 max-w-2xl">
+                                @if (role.permissions && getPermissionsArray(role.permissions).length > 0) {
+                                    @for (perm of getPermissionsArray(role.permissions); track perm.id) {
+                                        <span class="px-2 py-0.5 text-xs font-bold rounded-lg border bg-blue-50/50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20">
+                                            {{ perm.name }}
+                                        </span>
+                                    }
+                                } @else {
+                                    <span class="text-slate-400 text-xs italic">Aucune permission</span>
+                                }
+                            </div>
+                        </td>
+                        <td class="py-4 text-center">
+                            <button 
+                                pTooltip="Modifier les droits"
+                                tooltipPosition="top"
+                                (click)="openEditPermissionsDialog(role)"
+                                class="w-10 h-10 rounded-xl inline-flex items-center justify-center transition-colors text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30">
+                                <i class="pi pi-user-edit text-lg"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="3" class="text-center py-8 text-slate-500">
+                            Aucun rôle configuré.
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </p-card>
+    }
+
+    <!-- ONGLET PERMISSIONS -->
+    @if (activeTab() === 'permissions') {
+        <p-card styleClass="shadow-2xl border-none rounded-3xl overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">Permissions système</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Permissions brutes utilisées pour verrouiller les accès API</p>
+                </div>
+                <p-button 
+                    label="Nouvelle Permission" 
+                    icon="pi pi-plus" 
+                    (onClick)="openCreatePermissionDialog()"
+                    styleClass="bg-gradient-to-r from-emerald-500 to-blue-500 border-none shadow-md shadow-emerald-500/20 rounded-xl px-5 py-2.5 font-semibold text-sm hover:shadow-lg transition-all hover:-translate-y-0.5">
+                </p-button>
+            </div>
+
+            <p-table 
+                [value]="permissions()" 
+                [loading]="loadingPermissions()"
+                [paginator]="true" 
+                [rows]="10"
+                [rowHover]="true"
+                responsiveLayout="scroll"
+                styleClass="p-datatable-sm">
+                
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">Nom de la Permission</th>
+                        <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">ID Interne</th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-perm>
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800">
+                        <td class="py-4 font-bold">
+                            <span class="px-2.5 py-1 text-xs font-mono font-bold rounded-lg border bg-slate-50 text-slate-700 border-slate-200/60 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/60">
+                                {{ perm.name }}
+                            </span>
+                        </td>
+                        <td class="py-4 text-sm text-slate-500">
+                            #{{ perm.id }}
+                        </td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="2" class="text-center py-8 text-slate-500">
+                            Aucune permission système disponible.
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </p-card>
+    }
+
+    <!-- ── DIALOGUE CRÉATION RÔLE ────────────────────────────────────────── -->
+    <p-dialog 
+        header="Créer un nouveau rôle" 
+        [(visible)]="showCreateRoleDialog" 
+        [modal]="true" 
+        [resizable]="false"
+        [draggable]="false"
+        [style]="{width: '500px'}" 
+        styleClass="rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border-none shadow-2xl">
+        
+        <form [formGroup]="createRoleForm" (ngSubmit)="onCreateRoleSubmit()" class="space-y-6 pt-4">
+            <div class="flex flex-col gap-2">
+                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Nom du Rôle (Format: NOM_ROLE)</label>
+                <input pInputText formControlName="name" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-emerald-500/20" placeholder="Ex: DIRECTEUR" />
+                @if (createRoleForm.get('name')?.invalid && createRoleForm.get('name')?.touched) {
+                    <small class="text-red-500">Le nom du rôle est requis (entre 3 et 50 caractères).</small>
+                }
+            </div>
+
+            <!-- Checklist des permissions -->
+            <div class="flex flex-col gap-2">
+                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Permissions à assigner</label>
+                <div class="max-h-60 overflow-y-auto border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-800/30 grid grid-cols-1 gap-3">
+                    @for (perm of permissions(); track perm.id) {
+                        <div class="flex items-center gap-3">
+                            <p-checkbox 
+                                [binary]="true"
+                                [ngModel]="isPermissionChecked(perm.name || '', 'permissions')"
+                                [ngModelOptions]="{standalone: true}"
+                                (onChange)="onPermissionCheckboxChange($event, perm.name || '', 'permissions')"
+                                [inputId]="'perm-create-' + perm.id">
+                            </p-checkbox>
+                            <label [for]="'perm-create-' + perm.id" class="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                                {{ perm.name }}
+                            </label>
+                        </div>
+                    } @empty {
+                        <p class="text-xs text-slate-400 italic">Aucune permission système disponible</p>
+                    }
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button 
+                    type="button" 
+                    (click)="showCreateRoleDialog.set(false)" 
+                    class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Annuler
+                </button>
+                <p-button 
+                    type="submit" 
+                    [disabled]="createRoleForm.invalid || isSubmittingRole()"
+                    label="{{ isSubmittingRole() ? 'Création...' : 'Créer le rôle' }}"
+                    styleClass="bg-gradient-to-r from-emerald-500 to-blue-500 border-none rounded-xl px-5 py-2.5 font-semibold text-sm">
+                </p-button>
+            </div>
+        </form>
+    </p-dialog>
+
+    <!-- ── DIALOGUE MODIFICATION PERMISSIONS RÔLE ────────────────────────── -->
+    <p-dialog 
+        header="Modifier les permissions : {{ selectedRoleForPermissions()?.name }}" 
+        [(visible)]="showEditRolePermissionsDialog" 
+        [modal]="true" 
+        [resizable]="false"
+        [draggable]="false"
+        [style]="{width: '500px'}" 
+        styleClass="rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border-none shadow-2xl">
+        
+        <form [formGroup]="editRolePermissionsForm" (ngSubmit)="onEditPermissionsSubmit()" class="space-y-6 pt-4">
+            
+            <!-- Checklist des permissions -->
+            <div class="flex flex-col gap-2">
+                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Sélectionnez les permissions associées</label>
+                <div class="max-h-60 overflow-y-auto border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-800/30 grid grid-cols-1 gap-3">
+                    @for (perm of permissions(); track perm.id) {
+                        <div class="flex items-center gap-3">
+                            <p-checkbox 
+                                [binary]="true"
+                                [ngModel]="isPermissionChecked(perm.name || '', 'editPermissions')"
+                                [ngModelOptions]="{standalone: true}"
+                                (onChange)="onPermissionCheckboxChange($event, perm.name || '', 'editPermissions')"
+                                [inputId]="'perm-edit-' + perm.id">
+                            </p-checkbox>
+                            <label [for]="'perm-edit-' + perm.id" class="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+                                {{ perm.name }}
+                            </label>
+                        </div>
+                    } @empty {
+                        <p class="text-xs text-slate-400 italic">Aucune permission système disponible</p>
+                    }
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button 
+                    type="button" 
+                    (click)="showEditRolePermissionsDialog.set(false)" 
+                    class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Annuler
+                </button>
+                <p-button 
+                    type="submit" 
+                    [disabled]="isUpdatingPermissions()"
+                    label="{{ isUpdatingPermissions() ? 'Enregistrement...' : 'Enregistrer les modifications' }}"
+                    styleClass="bg-gradient-to-r from-emerald-500 to-blue-500 border-none rounded-xl px-5 py-2.5 font-semibold text-sm">
+                </p-button>
+            </div>
+        </form>
+    </p-dialog>
+
+    <!-- ── DIALOGUE CRÉATION PERMISSION ────────────────────────────────── -->
+    <p-dialog 
+        header="Créer une permission" 
+        [(visible)]="showCreatePermissionDialog" 
+        [modal]="true" 
+        [resizable]="false"
+        [draggable]="false"
+        [style]="{width: '450px'}" 
+        styleClass="rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border-none shadow-2xl">
+        
+        <form [formGroup]="createPermissionForm" (ngSubmit)="onCreatePermissionSubmit()" class="space-y-6 pt-4">
+            <div class="flex flex-col gap-2">
+                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Nom de la Permission (Format: NOM_PERMISSION)</label>
+                <input pInputText formControlName="name" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-emerald-500/20" placeholder="Ex: DOWNLOAD_DOC" />
+                @if (createPermissionForm.get('name')?.invalid && createPermissionForm.get('name')?.touched) {
+                    <small class="text-red-500">Le nom de la permission est requis (entre 3 et 50 caractères).</small>
+                }
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button 
+                    type="button" 
+                    (click)="showCreatePermissionDialog.set(false)" 
+                    class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Annuler
+                </button>
+                <p-button 
+                    type="submit" 
+                    [disabled]="createPermissionForm.invalid || isSubmittingPermission()"
+                    label="{{ isSubmittingPermission() ? 'Création...' : 'Créer la permission' }}"
+                    styleClass="bg-gradient-to-r from-emerald-500 to-blue-500 border-none rounded-xl px-5 py-2.5 font-semibold text-sm">
+                </p-button>
+            </div>
+        </form>
+    </p-dialog>
+
+</div>

@@ -1,0 +1,249 @@
+<div class="min-h-[calc(100vh-64px)] p-4 md:p-8 flex justify-center animate-fadein-up">
+    <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <!-- Sidebar Profil -->
+        <aside class="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
+            <p-card styleClass="shadow-xl border-none rounded-3xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl sticky top-24">
+                <div class="flex flex-col items-center p-4">
+                    <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-emerald-500 to-blue-500 mb-4 shadow-lg shadow-emerald-500/20">
+                        <div class="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-3xl font-bold text-slate-800 dark:text-slate-100">
+                            {{ authService.currentUser()?.email?.charAt(0)?.toUpperCase() }}
+                        </div>
+                    </div>
+                    
+                    <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100 text-center break-all mb-2">
+                        {{ authService.currentUser()?.email }}
+                    </h3>
+                    
+                    <span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-wider rounded-full mb-4">
+                        {{ getRoleLabel(authService.currentUser()?.role) }}
+                    </span>
+
+                    <div class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold mb-8 w-full justify-center"
+                         [ngClass]="{
+                             'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500': authService.currentUser()?.status === 'ACTIVE',
+                             'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-500': authService.currentUser()?.status === 'FORCE_PASSWORD_CHANGE',
+                             'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-500': authService.currentUser()?.status === 'PASSWORD_EXPIRED',
+                             'bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-400': authService.currentUser()?.status === 'SUSPENDED'
+                         }">
+                        <i class="pi pi-circle-fill text-[8px]"></i>
+                        {{ getStatusLabel(authService.currentUser()?.status).label }}
+                    </div>
+
+                    <!-- Navigation -->
+                    <nav class="flex flex-col w-full gap-2">
+                        <button (click)="activeTab.set('info')" 
+                                class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all"
+                                [ngClass]="activeTab() === 'info' ? 'bg-primary text-white shadow-md shadow-primary/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'">
+                            <i class="pi pi-user"></i> Informations
+                        </button>
+                        <button (click)="activeTab.set('security')"
+                                class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all"
+                                [ngClass]="activeTab() === 'security' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'">
+                            <i class="pi pi-shield"></i> Sécurité
+                        </button>
+                    </nav>
+
+                    <button (click)="goBack()" class="mt-8 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <i class="pi pi-arrow-left"></i> Retour
+                    </button>
+                </div>
+            </p-card>
+        </aside>
+
+        <!-- Contenu Principal -->
+        <main class="lg:col-span-8 xl:col-span-9">
+            
+            <!-- ONGLET INFORMATIONS -->
+            @if (activeTab() === 'info') {
+                <p-card styleClass="shadow-xl border-none rounded-3xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl h-full animate-fadein">
+                    <div class="p-4 sm:p-8">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 text-white text-xl">
+                                <i class="pi pi-user-edit"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Informations personnelles</h2>
+                                <p class="text-slate-500 dark:text-slate-400 text-sm">Gérez vos informations de profil</p>
+                            </div>
+                        </div>
+
+                        <form [formGroup]="profileForm" (ngSubmit)="onProfileSubmit()" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="flex flex-col gap-2">
+                                    <label class="font-bold text-slate-700 dark:text-slate-300 text-sm flex items-center gap-2">
+                                        <i class="pi pi-id-card text-blue-500"></i> Prénom
+                                    </label>
+                                    <input pInputText formControlName="name" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-blue-500/20" 
+                                           [ngClass]="{'border-red-500': hasProfileError('name', 'required') || hasProfileError('name', 'minlength')}" />
+                                </div>
+                                <div class="flex flex-col gap-2">
+                                    <label class="font-bold text-slate-700 dark:text-slate-300 text-sm flex items-center gap-2">
+                                        <i class="pi pi-id-card text-blue-500"></i> Nom
+                                    </label>
+                                    <input pInputText formControlName="surname" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-blue-500/20"
+                                           [ngClass]="{'border-red-500': hasProfileError('surname', 'required')}" />
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm flex items-center gap-2">
+                                    <i class="pi pi-phone text-blue-500"></i> Téléphone <span class="font-normal text-slate-400 text-xs ml-auto">(optionnel)</span>
+                                </label>
+                                <input pInputText formControlName="phone" class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-blue-500/20"
+                                       [ngClass]="{'border-red-500': hasProfileError('phone', 'pattern')}" placeholder="+221 77 000 00 00" />
+                                @if (hasProfileError('phone', 'pattern')) {
+                                    <small class="text-red-500">Format invalide</small>
+                                }
+                            </div>
+
+                            <div class="mt-8 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 flex flex-col md:flex-row gap-6">
+                                <div class="flex-1">
+                                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-1">
+                                        <i class="pi pi-envelope"></i> Email
+                                    </span>
+                                    <p class="font-medium text-slate-700 dark:text-slate-200">{{ authService.currentUser()?.email }}</p>
+                                </div>
+                                <div class="flex-1">
+                                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-1">
+                                        <i class="pi pi-briefcase"></i> Rôle
+                                    </span>
+                                    <p class="font-medium text-slate-700 dark:text-slate-200">{{ getRoleLabel(authService.currentUser()?.role) }}</p>
+                                </div>
+                            </div>
+
+                            <div class="pt-6 flex justify-end">
+                                <p-button type="submit" [disabled]="profileLoading() || profileForm.invalid || !profileForm.dirty" styleClass="bg-gradient-to-r from-blue-500 to-indigo-500 border-none rounded-xl px-8 py-3 shadow-lg shadow-blue-500/30">
+                                    <ng-template pTemplate="content">
+                                        <div class="flex items-center gap-2 font-bold">
+                                            @if (profileLoading()) { <i class="pi pi-spin pi-spinner"></i> Enregistrement... }
+                                            @else { <i class="pi pi-save"></i> Sauvegarder }
+                                        </div>
+                                    </ng-template>
+                                </p-button>
+                            </div>
+                        </form>
+                    </div>
+                </p-card>
+            }
+
+            <!-- ONGLET SÉCURITÉ -->
+            @if (activeTab() === 'security') {
+                <p-card styleClass="shadow-xl border-none rounded-3xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl h-full animate-fadein">
+                    <div class="p-4 sm:p-8">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 text-white text-xl">
+                                <i class="pi pi-lock"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Sécurité du compte</h2>
+                                <p class="text-slate-500 dark:text-slate-400 text-sm">Changez votre mot de passe régulièrement</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-8 p-4 bg-blue-50/50 dark:bg-blue-900/10 border-l-4 border-blue-500 rounded-r-xl flex gap-3 text-sm text-slate-600 dark:text-slate-300">
+                            <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+                            <p>Les mots de passe expirent tous les <strong>30 jours</strong>. Utilisez un mot de passe unique incluant majuscules, chiffres et caractères spéciaux.</p>
+                        </div>
+
+                        <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()" class="space-y-6 max-w-2xl">
+                            
+                            <div class="flex flex-col gap-2">
+                                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm flex items-center gap-2">
+                                    <i class="pi pi-key text-emerald-500"></i> Mot de passe actuel
+                                </label>
+                                <div class="relative">
+                                    <input pInputText [type]="showCurrent() ? 'text' : 'password'" formControlName="currentPassword" 
+                                           class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-emerald-500/20 pr-10" 
+                                           [ngClass]="{'border-red-500': hasPwdError('currentPassword', 'required')}" />
+                                    <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 transition-colors" (click)="showCurrent.set(!showCurrent())">
+                                        <i class="pi" [ngClass]="showCurrent() ? 'pi-eye-slash' : 'pi-eye'"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm flex items-center gap-2">
+                                    <i class="pi pi-shield text-emerald-500"></i> Nouveau mot de passe
+                                </label>
+                                <div class="relative">
+                                    <input pInputText [type]="showNew() ? 'text' : 'password'" formControlName="newPassword" 
+                                           class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-emerald-500/20 pr-10"
+                                           [ngClass]="{'border-red-500': hasPwdError('newPassword', 'required') || hasPwdError('newPassword', 'pattern')}" />
+                                    <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 transition-colors" (click)="showNew.set(!showNew())">
+                                        <i class="pi" [ngClass]="showNew() ? 'pi-eye-slash' : 'pi-eye'"></i>
+                                    </button>
+                                </div>
+                                
+                                @if (passwordForm.get('newPassword')?.value) {
+                                    <div class="flex items-center gap-3 mt-1">
+                                        <div class="flex-1 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div class="h-full transition-all duration-300"
+                                                 [style.width]="passwordStrength.width"
+                                                 [ngClass]="{
+                                                     'bg-red-500': passwordStrength.level === 'weak',
+                                                     'bg-amber-500': passwordStrength.level === 'medium',
+                                                     'bg-emerald-500': passwordStrength.level === 'strong'
+                                                 }"></div>
+                                        </div>
+                                        <span class="text-xs font-bold"
+                                              [ngClass]="{
+                                                  'text-red-500': passwordStrength.level === 'weak',
+                                                  'text-amber-500': passwordStrength.level === 'medium',
+                                                  'text-emerald-500': passwordStrength.level === 'strong'
+                                              }">{{ passwordStrength.label }}</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm flex items-center gap-2">
+                                    <i class="pi pi-check-circle text-emerald-500"></i> Confirmer le mot de passe
+                                </label>
+                                <div class="relative">
+                                    <input pInputText [type]="showConfirm() ? 'text' : 'password'" formControlName="confirmPassword" 
+                                           class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-emerald-500/20 pr-10"
+                                           [ngClass]="{'border-red-500': passwordsMismatch || hasPwdError('confirmPassword', 'required')}" />
+                                    <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 transition-colors" (click)="showConfirm.set(!showConfirm())">
+                                        <i class="pi" [ngClass]="showConfirm() ? 'pi-eye-slash' : 'pi-eye'"></i>
+                                    </button>
+                                </div>
+                                @if (passwordsMismatch) {
+                                    <small class="text-red-500 font-medium">Les mots de passe ne correspondent pas.</small>
+                                }
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                <div class="flex items-center gap-2 text-sm transition-colors" [ngClass]="{'text-emerald-500 dark:text-emerald-400 font-medium': (passwordForm.get('newPassword')?.value?.length || 0) >= 8, 'text-slate-500': (passwordForm.get('newPassword')?.value?.length || 0) < 8}">
+                                    <i class="pi pi-check-circle"></i> 8 caractères min
+                                </div>
+                                <div class="flex items-center gap-2 text-sm transition-colors" [ngClass]="{'text-emerald-500 dark:text-emerald-400 font-medium': /[A-Z]/.test(passwordForm.get('newPassword')?.value || ''), 'text-slate-500': !/[A-Z]/.test(passwordForm.get('newPassword')?.value || '')}">
+                                    <i class="pi pi-check-circle"></i> Une majuscule
+                                </div>
+                                <div class="flex items-center gap-2 text-sm transition-colors" [ngClass]="{'text-emerald-500 dark:text-emerald-400 font-medium': /[0-9]/.test(passwordForm.get('newPassword')?.value || ''), 'text-slate-500': !/[0-9]/.test(passwordForm.get('newPassword')?.value || '')}">
+                                    <i class="pi pi-check-circle"></i> Un chiffre
+                                </div>
+                                <div class="flex items-center gap-2 text-sm transition-colors" [ngClass]="{'text-emerald-500 dark:text-emerald-400 font-medium': /[@#$%^&+=!]/.test(passwordForm.get('newPassword')?.value || ''), 'text-slate-500': !/[@#$%^&+=!]/.test(passwordForm.get('newPassword')?.value || '')}">
+                                    <i class="pi pi-check-circle"></i> Caractère spécial
+                                </div>
+                            </div>
+
+                            <div class="pt-4 flex justify-end">
+                                <p-button type="submit" [disabled]="pwdLoading()" styleClass="bg-gradient-to-r from-emerald-500 to-blue-500 border-none rounded-xl px-8 py-3 shadow-lg shadow-emerald-500/30">
+                                    <ng-template pTemplate="content">
+                                        <div class="flex items-center gap-2 font-bold">
+                                            @if (pwdLoading()) { <i class="pi pi-spin pi-spinner"></i> Mise à jour... }
+                                            @else { <i class="pi pi-lock"></i> Changer le mot de passe }
+                                        </div>
+                                    </ng-template>
+                                </p-button>
+                            </div>
+
+                        </form>
+                    </div>
+                </p-card>
+            }
+
+        </main>
+    </div>
+</div>

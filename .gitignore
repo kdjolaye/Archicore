@@ -1,0 +1,27 @@
+# ===============================
+# .gitignore — Monolithe-App
+# ===============================
+
+# Fichiers secrets
+.env
+*.env
+
+# Build Maven
+target/
+*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# Stockage fichiers locaux
+storage/
+
+# OS
+.DS_Store
+Thumbs.db

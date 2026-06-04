@@ -1,0 +1,17 @@
+export * from './auditController.service';
+import { AuditControllerService } from './auditController.service';
+export * from './authController.service';
+import { AuthControllerService } from './authController.service';
+export * from './documentController.service';
+import { DocumentControllerService } from './documentController.service';
+export * from './dossierController.service';
+import { DossierControllerService } from './dossierController.service';
+export * from './missionController.service';
+import { MissionControllerService } from './missionController.service';
+export * from './permissionController.service';
+import { PermissionControllerService } from './permissionController.service';
+export * from './roleController.service';
+import { RoleControllerService } from './roleController.service';
+export * from './userController.service';
+import { UserControllerService } from './userController.service';
+export const APIS = [AuditControllerService, AuthControllerService, DocumentControllerService, DossierControllerService, MissionControllerService, PermissionControllerService, RoleControllerService, UserControllerService];

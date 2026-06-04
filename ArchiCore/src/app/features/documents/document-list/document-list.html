@@ -1,0 +1,151 @@
+<div class="animate-fadein-up">
+    <app-breadcrumb></app-breadcrumb>
+
+    <p-card styleClass="mt-4 shadow-xl border border-slate-200/50 dark:border-slate-800/50 rounded-2xl overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+        
+        <ng-template pTemplate="header">
+            <div class="px-6 pt-6 pb-2">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-50">Documents</h2>
+                <p class="text-slate-500 mt-1">
+                    Mission : <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ codeMission() }}</span>
+                </p>
+            </div>
+        </ng-template>
+
+        <!-- ─── Tableau des documents ─────────────────────────────────────────── -->
+        <p-table 
+            [value]="documents()" 
+            [loading]="loading()" 
+            [rowHover]="false"
+            styleClass="p-datatable-lg">
+            
+            <!-- En-tête -->
+            <ng-template pTemplate="header">
+                <tr class="bg-slate-100 dark:bg-slate-800 border-y border-slate-200 dark:border-slate-700">
+                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">Nom du fichier</th>
+                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">Type</th>
+                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">Taille</th>
+                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">Date d'upload</th>
+                    <th class="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300 text-right w-32">Actions</th>
+                </tr>
+            </ng-template>
+
+            <!-- Corps : une ligne par document -->
+            <ng-template pTemplate="body" let-doc>
+                <tr class="bg-surface-0 dark:bg-surface-900 hover:bg-surface-50 dark:hover:bg-surface-800 hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-b border-surface-200 dark:border-surface-800">
+                    
+                    <!-- Nom du fichier -->
+                    <td class="py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <i class="pi pi-file text-primary text-lg"></i>
+                            </div>
+                            <span class="font-medium text-surface-900 dark:text-surface-0">{{ doc.nomFichierOriginal }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Type MIME -->
+                    <td class="py-4 text-surface-600 dark:text-surface-400">
+    <span class="bg-surface-100 dark:bg-surface-800 px-2 py-1 rounded text-xs">
+        {{ formatType(doc.typeFichier) }}
+    </span>
+</td>
+
+                    <!-- Taille formatée -->
+                    <td class="py-4 text-surface-600 dark:text-surface-400 font-mono text-sm">
+                        {{ formatSize(doc.taille) }}
+                    </td>
+
+                    <!-- Date d'upload -->
+                    <td class="py-4 text-surface-600 dark:text-surface-400 text-sm">
+                        {{ doc.createdAt | date:'short' }}
+                    </td>
+
+                    <!-- Actions par document -->
+                    <td class="py-4 text-right">
+                        <div class="flex gap-1 justify-end">
+
+                            <!-- Télécharger : visible par tous les rôles (READ autorisé pour tous) -->
+                           <!-- Télécharger -->
+<button 
+    type="button"
+    class="p-button p-button-text p-button-rounded p-button-secondary"
+    (click)="download(doc.id, doc.nomFichierOriginal)"
+    title="Télécharger">
+    <i class="pi pi-download"></i>
+</button>
+
+                            <!-- Supprimer : SUPER_ADMIN, ADMIN_PRINCIPAL et ADMIN assigné uniquement -->
+                            @if (canDelete()) {
+                                <p-button 
+                                    icon="pi pi-trash" 
+                                    [rounded]="true" 
+                                    [text]="true" 
+                                    severity="danger"
+                                    styleClass="hover:bg-red-500/10 transition-colors"
+                                    (onClick)="deleteDocument(doc.id)"
+                                    pTooltip="Supprimer"
+                                    tooltipPosition="top">
+                                </p-button>
+                            }
+
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <!-- Message si aucun document -->
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="5" class="text-center py-12">
+                        <div class="flex flex-col items-center justify-center text-surface-500 gap-3">
+                            <div class="w-16 h-16 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
+                                <i class="pi pi-cloud-upload text-3xl text-surface-400"></i>
+                            </div>
+                            <span class="text-lg">Aucun document archivé pour cette mission.</span>
+                            <!-- Message d'upload uniquement si l'utilisateur a les droits -->
+                            @if (canUpload()) {
+                                <p class="text-sm">Commencez par uploader un fichier.</p>
+                            } @else {
+                                <p class="text-sm text-slate-400">Vous n'avez pas les droits pour uploader des documents.</p>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+
+        <!-- ─── Barre d'actions bas de page ──────────────────────────────────── -->
+        <div class="mt-6 flex justify-between items-center flex-wrap gap-4">
+
+            <!-- Retour aux missions : visible par tous -->
+            <p-button 
+                label="Retour aux missions" 
+                icon="pi pi-arrow-left" 
+                [text]="true" 
+                severity="secondary"
+                styleClass="hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors rounded-xl px-4"
+                [routerLink]="['/dossiers', codeDossier(), 'missions']">
+            </p-button>
+
+            <!-- Upload : SUPER_ADMIN, ADMIN_PRINCIPAL et ADMIN assigné uniquement -->
+            @if (canUpload()) {
+                <input 
+                    type="file" 
+                    #fileInput 
+                    (change)="onFileSelected($event)" 
+                    style="display: none" 
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+
+                <p-button 
+                    [label]="uploading() ? 'Envoi en cours...' : 'Uploader un document'" 
+                    [icon]="uploading() ? 'pi pi-spin pi-spinner' : 'pi pi-upload'" 
+                    [disabled]="uploading()"
+                    styleClass="bg-gradient-to-r from-primary to-primary-500 border-none shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 rounded-xl px-6"
+                    (onClick)="fileInput.click()">
+                </p-button>
+            }
+
+        </div>
+    </p-card>
+</div>

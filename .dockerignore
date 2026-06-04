@@ -1,0 +1,33 @@
+# =============================================================
+# .dockerignore — Exclut les fichiers inutiles du contexte Docker
+# =============================================================
+
+# Répertoires de build locaux
+target/
+*.jar
+*.war
+
+# IDE et éditeurs
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Fichiers systèmes
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+logs/
+
+# Tests
+src/test/
+
+# Documentation
+*.md

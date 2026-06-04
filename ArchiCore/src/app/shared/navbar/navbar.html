@@ -1,0 +1,77 @@
+<div class="px-4 py-3 md:px-8 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm sticky top-0 z-50 flex items-center justify-between transition-colors duration-500">
+    <!-- Section de gauche : Logo et Titre -->
+    <div class="flex items-center gap-3 cursor-pointer group">
+        <div class="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center rounded-xl shadow-lg shadow-emerald-500/30 group-hover:shadow-emerald-500/50 group-hover:-translate-y-0.5 transition-all duration-300">
+            <i class="pi pi-box text-white text-xl group-hover:rotate-12 transition-transform duration-300"></i>
+        </div>
+        <span class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 hidden md:block">
+            Archi<span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-blue-500">Core</span>
+        </span>
+    </div>
+
+    <!-- Section de droite : Thème et Auth -->
+    <div class="flex items-center gap-4">
+        <!-- Bouton Dark Mode -->
+        <button 
+            class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300 focus:outline-none"
+            (click)="toggleTheme()"
+            title="Changer le thème">
+            <i [class]="themeService.isDarkMode() ? 'pi pi-sun text-xl' : 'pi pi-moon text-xl'"></i>
+        </button>
+
+        <!-- Affichage conditionnel selon l'état de connexion -->
+        @if (authService.currentUser()) {
+            
+            <!-- Lien d'administration (visible uniquement pour SUPER_ADMIN et ADMIN_PRINCIPAL) -->
+            @if (authService.hasRole(['SUPER_ADMIN', 'ADMIN_PRINCIPAL'])) {
+                <button 
+                    class="px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors hidden sm:flex items-center gap-2 mr-2"
+                    (click)="router.navigate(['/users'])">
+                    <i class="pi pi-users"></i>
+                    Gestion des utilisateurs
+                </button>
+                <button 
+                    class="px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors hidden sm:flex items-center gap-2 mr-2"
+                    (click)="router.navigate(['/roles-permissions'])"
+                    title="Paramètres de Rôles & Droits">
+                    <i class="pi pi-cog"></i>
+                    Rôles & Droits
+                </button>
+                <button 
+                    class="px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors hidden sm:flex items-center gap-2 mr-2"
+                    (click)="router.navigate(['/audit'])"
+                    title="Logs d'audit et historique d'activité">
+                    <i class="pi pi-history"></i>
+                    Audit
+                </button>
+            }
+
+            <!-- Si connecté : Menu utilisateur -->
+            <div class="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                 (click)="menu.toggle($event)">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-blue-500 flex items-center justify-center text-white font-bold shadow-md">
+                    {{ authService.currentUser()?.email?.charAt(0)?.toUpperCase() }}
+                </div>
+                <div class="hidden sm:flex flex-col text-sm ml-1">
+                    <span class="font-medium text-slate-900 dark:text-slate-50">
+                        {{ authService.currentUser()?.email }}
+                    </span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">
+                        {{ authService.currentUser()?.role }}
+                    </span>
+                </div>
+                <i class="pi pi-chevron-down text-xs text-slate-500 ml-1"></i>
+            </div>
+            <!-- Menu flottant PrimeNG -->
+            <p-menu #menu [model]="userMenuItems" [popup]="true" appendTo="body"></p-menu>
+        } @else {
+            <!-- Si non connecté : Bouton Login -->
+            <button 
+                class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-500 text-white font-medium shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+                (click)="showLogin()">
+                <i class="pi pi-sign-in"></i>
+                Se connecter
+            </button>
+        }
+    </div>
+</div>

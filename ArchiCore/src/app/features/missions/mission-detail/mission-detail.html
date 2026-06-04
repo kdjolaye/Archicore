@@ -1,0 +1,200 @@
+<div class="animate-fadein-up max-w-4xl mx-auto">
+    <app-breadcrumb></app-breadcrumb>
+
+    @if (mission() ; as m) {
+        <div class="mt-4 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Détails de la Mission : {{ m.codeMission }}</h2>
+                <div class="flex gap-2">
+                    <!-- Modifier : SUPER_ADMIN, ADMIN_PRINCIPAL et ADMIN assigné -->
+@if (canEdit()) {
+    <p-button 
+        label="Modifier" 
+        icon="pi pi-pencil" 
+        [text]="true" 
+        severity="warn" 
+        [routerLink]="['/dossiers', m.codeDossier, 'missions', m.codeMission, 'edit']">
+    </p-button>
+}
+
+<!-- Supprimer : SUPER_ADMIN et ADMIN_PRINCIPAL uniquement -->
+@if (canDelete()) {
+    <p-button 
+        label="Supprimer" 
+        icon="pi pi-trash" 
+        [text]="true" 
+        severity="danger" 
+        (onClick)="deleteMission()">
+    </p-button>
+}
+                </div>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Code Mission</label>
+                    <p class="text-lg font-medium text-slate-900 dark:text-slate-100">{{ m.codeMission }}</p>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Exercice</label>
+                    <p class="text-lg font-medium text-slate-900 dark:text-slate-100">{{ m.exercice }}</p>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Statut</label>
+                    <div class="mt-1">
+                        <p-tag [value]="m.statut" [severity]="getStatutSeverity(m.statut)" styleClass="rounded-full px-3"></p-tag>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Dossier Associé</label>
+                    <p class="text-lg font-medium text-slate-900 dark:text-slate-100">{{ m.codeDossier }}</p>
+                </div>
+            </div>
+
+            <!-- Section Équipe de la Mission -->
+            <div class="p-6 border-t border-slate-100 dark:border-slate-800">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="pi pi-users text-primary text-xl"></i>
+                        <h3 class="text-lg font-bold">Équipe de la Mission</h3>
+                        <span class="px-2 py-0.5 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full">
+                            {{ team().length }} membre(s)
+                        </span>
+                    </div>
+                    @if (canEdit()) {
+                        <p-button 
+                            label="Ajouter un membre" 
+                            icon="pi pi-plus" 
+                            styleClass="p-button-outlined rounded-xl p-button-sm"
+                            (onClick)="openAddTeamMemberDialog()">
+                        </p-button>
+                    }
+                </div>
+
+                @if (loadingTeam()) {
+                    <div class="flex justify-center py-6">
+                        <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
+                    </div>
+                } @else if (team().length === 0) {
+                    <div class="text-center py-8 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/50">
+                        <i class="pi pi-users text-slate-400 text-2xl mb-2 block"></i>
+                        <p class="text-slate-500 text-sm">Aucun collaborateur n'est encore affecté à cette mission.</p>
+                    </div>
+                } @else {
+                    <div class="overflow-x-auto">
+                        <p-table [value]="team()" styleClass="p-datatable-striped">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th class="py-3 px-4">Collaborateur</th>
+                                    <th class="py-3 px-4">Poste sur la Mission</th>
+                                    
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-member>
+                                @let userInfo = getUserInfo(member.userId);
+                                <tr>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase">
+                                                {{ userInfo.displayName.charAt(0) }}
+                                            </div>
+                                            <div>
+                                                <div class="font-semibold text-sm text-slate-900 dark:text-slate-100">
+                                                    {{ userInfo.displayName }}
+                                                </div>
+                                                <div class="text-xs text-slate-500">
+                                                    {{ userInfo.username }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-50/80 text-blue-600 border border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20">
+                                            {{ getPosteLabel(member.poste) }}
+                                        </span>
+                                    </td>
+                                    
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+                }
+            </div>
+
+            <div class="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <p-button label="Retour aux missions" icon="pi pi-arrow-left" [text]="true" [routerLink]="['/dossiers', m.codeDossier, 'missions']"></p-button>
+                <p-button label="Voir les documents" icon="pi pi-folder-open" styleClass="rounded-xl" [routerLink]="['/dossiers', m.codeDossier, 'missions', m.codeMission, 'documents']"></p-button>
+            </div>
+        </div>
+    } @else if (loading()) {
+        <div class="flex flex-col items-center justify-center py-20 gap-4">
+            <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+            <p class="text-slate-500 animate-pulse">Chargement de la mission...</p>
+        </div>
+    }
+
+    <!-- Dialogue d'ajout de membre à l'équipe -->
+    <p-dialog 
+        header="Ajouter un collaborateur à l'équipe" 
+        [(visible)]="showAddTeamMemberDialog" 
+        [modal]="true" 
+        [breakpoints]="{ '960px': '75vw', '576px': '90vw' }" 
+        [style]="{ width: '450px' }"
+        styleClass="custom-dialog rounded-3xl"
+        [draggable]="false" 
+        [resizable]="false">
+        
+        <div class="flex flex-col gap-6 py-4">
+            <!-- Sélection de l'utilisateur -->
+            <div class="flex flex-col gap-2">
+                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Collaborateur</label>
+                @if (availableUsers().length === 0) {
+                    <p class="text-amber-500 text-xs italic">Tous les collaborateurs disponibles font déjà partie de l'équipe.</p>
+                } @else {
+                    <p-select 
+                        [options]="availableUsers()" 
+                        [(ngModel)]="selectedUserId" 
+                        placeholder="Sélectionner un collaborateur"
+                        optionLabel="label"
+                        optionValue="value"
+                        styleClass="w-full rounded-xl border-slate-200">
+                    </p-select>
+                }
+            </div>
+
+            <!-- Sélection du poste -->
+            <div class="flex flex-col gap-2">
+                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Poste / Rôle sur la mission</label>
+                <p-select 
+                    [options]="posteOptions" 
+                    [(ngModel)]="selectedPoste" 
+                    placeholder="Sélectionner un poste"
+                    optionLabel="label"
+                    optionValue="value"
+                    styleClass="w-full rounded-xl border-slate-200">
+                </p-select>
+            </div>
+        </div>
+
+        <ng-template pTemplate="footer">
+            <div class="flex justify-end gap-2 pt-4">
+                <p-button 
+                    label="Annuler" 
+                    icon="pi pi-times" 
+                    [text]="true" 
+                    severity="secondary" 
+                    (onClick)="showAddTeamMemberDialog.set(false)" 
+                    styleClass="rounded-xl">
+                </p-button>
+                <p-button 
+                    label="Ajouter" 
+                    icon="pi pi-check" 
+                    [disabled]="!selectedUserId() || isSubmittingTeamMember()" 
+                    [loading]="isSubmittingTeamMember()"
+                    (onClick)="onAddTeamMemberSubmit()" 
+                    styleClass="rounded-xl bg-primary border-none px-6">
+                </p-button>
+            </div>
+        </ng-template>
+    </p-dialog>
+</div>

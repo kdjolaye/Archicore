@@ -1,0 +1,68 @@
+<div class="animate-fadein-up max-w-4xl mx-auto">
+    <app-breadcrumb></app-breadcrumb>
+
+    @if (dossier() ; as d) {
+        <div class="mt-4 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Détails du Dossier : {{ d.codeDossier }}</h2>
+                <div class="flex gap-2">
+                    @if (canEdit()) {
+                        <p-button
+                            label="Modifier"
+                            icon="pi pi-pencil"
+                            [text]="true"
+                            severity="warn"
+                            [routerLink]="['/dossiers', d.codeDossier, 'edit']">
+                        </p-button>
+                        <p-button
+                            label="Supprimer"
+                            icon="pi pi-trash"
+                            [text]="true"
+                            severity="danger"
+                            (onClick)="deleteDossier()">
+                        </p-button>
+                    }
+
+                </div>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Raison Sociale</label>
+                    <p class="text-lg font-medium text-slate-900 dark:text-slate-100">{{ d.raisonSociale }}</p>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Type Entreprise</label>
+                    <p class="text-lg font-medium text-slate-900 dark:text-slate-100">{{ d.typeEntreprise || 'N/A' }}</p>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Email de contact</label>
+                    <p class="text-lg font-medium text-slate-900 dark:text-slate-100">{{ d.email || 'N/A' }}</p>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Téléphone</label>
+                    <p class="text-lg font-medium text-slate-900 dark:text-slate-100">{{ d.phone || 'N/A' }}</p>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-xs text-slate-500 uppercase font-bold tracking-wider">Adresse complète</label>
+                    <p class="text-lg font-medium text-slate-900 dark:text-slate-100">{{ d.adresse || 'N/A' }}</p>
+                </div>
+            </div>
+
+            <div class="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <p-button label="Retour à la liste" icon="pi pi-arrow-left" [text]="true" routerLink="/dossiers"></p-button>
+                <div class="flex gap-3">
+                    <p-button label="Voir les missions" icon="pi pi-briefcase" styleClass="p-button-outlined rounded-xl" [routerLink]="['/dossiers', d.codeDossier, 'missions']"></p-button>
+                    @if (canEdit()) {
+                        <p-button label="Nouvelle Mission" icon="pi pi-plus" styleClass="rounded-xl" [routerLink]="['/dossiers', d.codeDossier, 'missions', 'new']"></p-button>
+                    }
+                </div>
+            </div>
+        </div>
+    } @else if (loading()) {
+        <div class="flex flex-col items-center justify-center py-20 gap-4">
+            <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+            <p class="text-slate-500 animate-pulse">Chargement du dossier...</p>
+        </div>
+    }
+</div>

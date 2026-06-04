@@ -1,0 +1,84 @@
+<div class="animate-fadein-up max-w-4xl mx-auto">
+    <app-breadcrumb></app-breadcrumb>
+
+    <p-card styleClass="mt-4 shadow-2xl border-none rounded-3xl overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl">
+        <ng-template pTemplate="header">
+            <div class="px-8 pt-8 pb-4 bg-gradient-to-r from-primary/10 to-transparent border-b border-primary/5">
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                    {{ isEditMode() ? 'Modifier la Mission' : 'Nouvelle Mission' }}
+                </h2>
+                <p class="text-slate-500 mt-2">
+                    Dossier : <span class="font-bold text-primary">{{ codeDossier() }}</span>
+                </p>
+            </div>
+        </ng-template>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-8 space-y-8">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Code Mission -->
+                <div class="flex flex-col gap-2">
+                    <label for="codeMission" class="font-bold text-slate-700 dark:text-slate-300">Code Mission</label>
+                    <input 
+                        pInputText 
+                        id="codeMission" 
+                        formControlName="codeMission" 
+                        [readonly]="isEditMode()"
+                        [class.bg-slate-100]="isEditMode()"
+                        placeholder="Ex: MIS1"
+                        class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-primary/20" />
+                    @if (form.get('codeMission')?.touched && form.get('codeMission')?.invalid) {
+                        <small class="text-red-500 font-medium">Le code mission est obligatoire.</small>
+                    }
+                </div>
+
+                <!-- Exercice -->
+                <div class="flex flex-col gap-2">
+                    <label for="exercice" class="font-bold text-slate-700 dark:text-slate-300">Exercice (Année)</label>
+                    <input 
+                        pInputText 
+                        id="exercice" 
+                        formControlName="exercice" 
+                        placeholder="2026"
+                        class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-primary/20" />
+                    @if (form.get('exercice')?.touched && form.get('exercice')?.invalid) {
+                        <small class="text-red-500 font-medium">L'exercice est obligatoire.</small>
+                    }
+                </div>
+
+                <!-- Statut (Visible only in Edit mode) -->
+                @if (isEditMode()) {
+                    <div class="flex flex-col gap-2 md:col-span-2">
+                        <label for="statut" class="font-bold text-slate-700 dark:text-slate-300">Statut de la mission</label>
+                        <!-- ✅ Nouveau -->
+<p-select
+    id="statut"
+    [options]="statutOptions"
+    formControlName="statut"
+    placeholder="Changer le statut"
+    styleClass="w-full rounded-xl border-slate-200">
+</p-select>
+                    </div>
+                }
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <p-button 
+                    label="Annuler" 
+                    icon="pi pi-times" 
+                    styleClass="p-button-outlined border-slate-200 text-slate-500 rounded-xl px-6"
+                    (onClick)="onCancel()">
+                </p-button>
+                <p-button
+    [label]="isEditMode() ? 'Mettre à jour' : 'Créer la mission'"
+    icon="pi pi-check"
+    [loading]="loading()"
+    [disabled]="form.invalid"
+    styleClass="bg-primary border-none shadow-lg shadow-primary/20 rounded-xl px-8"
+    (onClick)="onSubmit()">
+</p-button>
+            </div>
+        </form>
+    </p-card>
+</div>

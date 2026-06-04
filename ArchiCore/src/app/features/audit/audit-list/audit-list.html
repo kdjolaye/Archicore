@@ -1,0 +1,235 @@
+<div class="animate-fadein-up max-w-7xl mx-auto p-4 md:p-8">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div class="flex items-center gap-4">
+            <button 
+                (click)="goBack()" 
+                pTooltip="Retour à la Gestion des Utilisateurs"
+                tooltipPosition="top"
+                class="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i class="pi pi-arrow-left"></i>
+            </button>
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">Audit & Historique</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Consultez l'historique complet des actions effectuées sur le système</p>
+            </div>
+        </div>
+        
+        <!-- Onglets / Boutons filtres -->
+        <div class="flex flex-wrap bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/30 dark:border-slate-700/30 gap-1">
+            <button 
+                (click)="switchTab('tous')"
+                class="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all flex items-center gap-1.5"
+                [ngClass]="activeTab() === 'tous' ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
+                <i class="pi pi-list"></i>
+                Tous
+            </button>
+            <button 
+                (click)="switchTab('utilisateur')"
+                class="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all flex items-center gap-1.5"
+                [ngClass]="activeTab() === 'utilisateur' ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
+                <i class="pi pi-user"></i>
+                Par Utilisateur
+            </button>
+            <button 
+                (click)="switchTab('ressource')"
+                class="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all flex items-center gap-1.5"
+                [ngClass]="activeTab() === 'ressource' ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
+                <i class="pi pi-box"></i>
+                Par Ressource
+            </button>
+            <button 
+                (click)="switchTab('periode')"
+                class="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all flex items-center gap-1.5"
+                [ngClass]="activeTab() === 'periode' ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
+                <i class="pi pi-calendar"></i>
+                Par Période
+            </button>
+            <button 
+                (click)="switchTab('action')"
+                class="px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all flex items-center gap-1.5"
+                [ngClass]="activeTab() === 'action' ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-md' : 'text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'">
+                <i class="pi pi-tag"></i>
+                Par Action
+            </button>
+        </div>
+    </div>
+
+    <!-- Barre de filtres dynamiques (uniquement si ce n'est pas "Tous") -->
+    @if (activeTab() !== 'tous') {
+        <p-card styleClass="mb-6 shadow-md border-none rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
+            <div class="flex flex-col md:flex-row items-end gap-4 p-2">
+                
+                <!-- Filtre par Utilisateur -->
+                @if (activeTab() === 'utilisateur') {
+                    <div class="flex flex-col gap-2 w-full md:w-80">
+                        <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Sélectionner l'utilisateur</label>
+                        <p-select 
+                            [options]="users()" 
+                            [ngModel]="selectedUsername()"
+                            (ngModelChange)="selectedUsername.set($event)"
+                            placeholder="Rechercher un utilisateur" 
+                            [filter]="true"
+                            styleClass="w-full rounded-xl border-slate-200"
+                            appendTo="body">
+                        </p-select>
+                    </div>
+                }
+
+                <!-- Filtre par Ressource -->
+                @if (activeTab() === 'ressource') {
+                    <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto grow">
+                        <div class="flex flex-col gap-2 w-full md:w-60">
+                            <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Type de ressource</label>
+                            <p-select 
+                                [options]="resourceTypeOptions" 
+                                [ngModel]="selectedResourceType()"
+                                (ngModelChange)="selectedResourceType.set($event)"
+                                styleClass="w-full rounded-xl border-slate-200"
+                                appendTo="body">
+                            </p-select>
+                        </div>
+                        <div class="flex flex-col gap-2 w-full md:w-60">
+                            <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Identifiant (ID)</label>
+                            <input 
+                                type="text"
+                                [ngModel]="resourceId()"
+                                (ngModelChange)="resourceId.set($event)"
+                                placeholder="Saisir l'ID (ex: 12)" 
+                                class="w-full rounded-xl border-slate-200 dark:border-slate-800 p-2.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" 
+                            />
+                        </div>
+                    </div>
+                }
+
+                <!-- Filtre par Période -->
+                @if (activeTab() === 'periode') {
+                    <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto grow">
+                        <div class="flex flex-col gap-2 w-full md:w-60">
+                            <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Date de début</label>
+                            <input 
+                                type="date"
+                                [ngModel]="startDate()"
+                                (ngModelChange)="startDate.set($event)"
+                                class="w-full rounded-xl border-slate-200 dark:border-slate-800 p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" 
+                            />
+                        </div>
+                        <div class="flex flex-col gap-2 w-full md:w-60">
+                            <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Date de fin</label>
+                            <input 
+                                type="date"
+                                [ngModel]="endDate()"
+                                (ngModelChange)="endDate.set($event)"
+                                class="w-full rounded-xl border-slate-200 dark:border-slate-800 p-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" 
+                            />
+                        </div>
+                    </div>
+                }
+
+                <!-- Filtre par Action -->
+                @if (activeTab() === 'action') {
+                    <div class="flex flex-col gap-2 w-full md:w-80">
+                        <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Sélectionner l'action</label>
+                        <p-select 
+                            [options]="actionOptions" 
+                            [ngModel]="selectedAction()"
+                            (ngModelChange)="selectedAction.set($event)"
+                            placeholder="Choisir une action" 
+                            [filter]="true"
+                            styleClass="w-full rounded-xl border-slate-200"
+                            appendTo="body">
+                        </p-select>
+                    </div>
+                }
+
+                <!-- Bouton de validation de recherche -->
+                <p-button 
+                    label="Rechercher" 
+                    icon="pi pi-search" 
+                    (onClick)="fetchLogs()"
+                    styleClass="bg-emerald-500 border-none shadow-md rounded-xl px-5 py-2.5 font-semibold text-sm hover:bg-emerald-600 transition-colors w-full md:w-auto">
+                </p-button>
+
+            </div>
+        </p-card>
+    }
+
+    <!-- Affichage principal des Logs -->
+    <p-card styleClass="shadow-2xl border-none rounded-3xl overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl">
+        <p-table 
+            [value]="logs()" 
+            [loading]="loading()"
+            [paginator]="true" 
+            [rows]="15"
+            [rowHover]="true"
+            responsiveLayout="scroll"
+            styleClass="p-datatable-sm"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} logs"
+            [rowsPerPageOptions]="[15,30,50]">
+            
+            <ng-template pTemplate="header">
+                <tr>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4 w-48">Date & Heure</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4 w-60">Utilisateur</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4 w-52">Action</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4 w-44">Ressource</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">Détails</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4 w-36 text-center">IP</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-log>
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 text-sm">
+                    <td class="py-4 text-slate-500 font-medium">
+                        {{ log.performedAt ? (log.performedAt | date:'dd/MM/yyyy HH:mm:ss') : '—' }}
+                    </td>
+                    <td class="py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-xs shrink-0">
+                                {{ log.performedBy?.charAt(0)?.toUpperCase() }}
+                            </div>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[200px]" [title]="log.performedBy">
+                                {{ log.performedBy || 'Système' }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="py-4">
+                        <span class="px-2.5 py-1 text-xs font-bold rounded-lg border inline-block" [ngClass]="getActionBadgeClass(log.action)">
+                            {{ getActionLabel(log.action) }}
+                        </span>
+                    </td>
+                    <td class="py-4">
+                        @if (log.entityType) {
+                            <span class="px-2 py-0.5 text-xs font-bold rounded-md bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                {{ log.entityType }} #{{ log.entityId }}
+                            </span>
+                        } @else {
+                            <span class="text-slate-400 italic">—</span>
+                        }
+                    </td>
+                    <td class="py-4 text-slate-600 dark:text-slate-400 font-normal">
+                        {{ log.details || 'Aucun détail additionnel' }}
+                    </td>
+                    <td class="py-4 font-mono text-center text-xs text-slate-500">
+                        {{ log.ipAddress || '—' }}
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center py-12 text-slate-500 dark:text-slate-400">
+                        <div class="flex flex-col items-center gap-3">
+                            <i class="pi pi-search text-3xl text-slate-300 dark:text-slate-700"></i>
+                            <p class="font-semibold text-base">Aucun log d'audit trouvé</p>
+                            <p class="text-xs text-slate-400">Modifiez vos filtres ou lancez une nouvelle recherche</p>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-card>
+
+</div>

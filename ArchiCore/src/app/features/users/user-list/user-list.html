@@ -1,0 +1,278 @@
+<div class="animate-fadein-up max-w-7xl mx-auto p-4 md:p-8">
+
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div class="flex items-center gap-4">
+            <a 
+                routerLink="/dossiers" 
+                pTooltip="Retour aux Dossiers"
+                tooltipPosition="top"
+                class="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+                <i class="pi pi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">Gestion des Utilisateurs</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Gérez les accès et les rôles de l'application</p>
+            </div>
+        </div>
+        <p-button 
+            label="Nouvel Utilisateur" 
+            icon="pi pi-user-plus" 
+            (onClick)="openCreateDialog()"
+            styleClass="bg-gradient-to-r from-emerald-500 to-blue-500 border-none shadow-lg shadow-emerald-500/30 rounded-xl px-6 py-3 font-semibold hover:shadow-xl hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">
+        </p-button>
+    </div>
+
+    <p-card styleClass="shadow-2xl border-none rounded-3xl overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl">
+        <p-table 
+            [value]="users()" 
+            [loading]="loading()"
+            [paginator]="true" 
+            [rows]="10"
+            [rowHover]="true"
+            responsiveLayout="scroll"
+            styleClass="p-datatable-sm"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} utilisateurs"
+            [rowsPerPageOptions]="[10,25,50]">
+            
+            <ng-template pTemplate="header">
+                <tr>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">Utilisateur</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">Rôle</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">Statut</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4">Dernière connexion</th>
+                    <th class="bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-bold uppercase text-xs tracking-wider py-4 text-center">Actions</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-user>
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800">
+                    <td class="py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">
+                                {{ user.username?.charAt(0)?.toUpperCase() }}
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800 dark:text-slate-200">{{ user.name || '—' }} {{ user.surname || '' }}</p>
+                                <p class="text-xs text-slate-500">{{ user.username }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4">
+                        <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {{ getRoleLabel(user.role?.name) }}
+                        </span>
+                    </td>
+                    <td class="py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5" [ngClass]="getStatusBadgeClass(user.status)">
+                            <i class="pi pi-circle-fill text-[8px]"></i>
+                            {{ getStatusLabel(user.status) }}
+                        </span>
+                    </td>
+                    <td class="py-4 text-sm text-slate-500">
+                        {{ user.lastLogin ? (user.lastLogin | date:'dd/MM/yyyy HH:mm') : 'Jamais' }}
+                    </td>
+                    <td class="py-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            @if (user.role?.name === 'ADMIN') {
+                                <button 
+                                    pTooltip="Assigner une mission"
+                                    tooltipPosition="top"
+                                    (click)="openAssignMissionDialog(user)"
+                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30">
+                                    <i class="pi pi-briefcase"></i>
+                                </button>
+                            }
+
+                            @if (user.username !== authService.currentUser()?.email) {
+                                <button 
+                                    pTooltip="{{ user.status === 'SUSPENDED' ? 'Activer le compte' : 'Suspendre le compte' }}"
+                                    tooltipPosition="top"
+                                    (click)="toggleStatus(user)"
+                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                    [ngClass]="user.status === 'SUSPENDED' ? 'text-emerald-600 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-emerald-500/20' : 'text-amber-600 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-500/20'">
+                                    <i class="pi" [ngClass]="user.status === 'SUSPENDED' ? 'pi-check-circle' : 'pi-ban'"></i>
+                                </button>
+                                <button 
+                                    pTooltip="Supprimer l'utilisateur"
+                                    tooltipPosition="top"
+                                    (click)="deleteUser(user)"
+                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30">
+                                    <i class="pi pi-trash"></i>
+                                </button>
+                            } @else {
+                                <span class="text-xs text-slate-400 italic">Vous-même</span>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+            
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-slate-500">
+                        Aucun utilisateur trouvé.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-card>
+
+    <!-- Modal Création Utilisateur -->
+    <p-dialog 
+        header="Nouvel Utilisateur" 
+        [(visible)]="showCreateDialog" 
+        [modal]="true" 
+        [style]="{width: '100%', maxWidth: '500px'}" 
+        [draggable]="false" 
+        [resizable]="false"
+        styleClass="rounded-2xl overflow-hidden shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        
+        @if (!tempPassword()) {
+            <form [formGroup]="createForm" (ngSubmit)="onCreateSubmit()" class="space-y-6 mt-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30 flex gap-3 text-sm text-blue-700 dark:text-blue-300">
+                    <i class="pi pi-info-circle mt-0.5"></i>
+                    <p>Un mot de passe temporaire sera généré automatiquement. L'utilisateur devra le changer à sa première connexion.</p>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Email professionnel</label>
+                    <input pInputText formControlName="username" type="email" placeholder="prenom.nom@entreprise.com" 
+                           class="w-full rounded-xl border-slate-200 focus:ring-2 focus:ring-primary/20"
+                           [ngClass]="{'border-red-500': createForm.get('username')?.invalid && createForm.get('username')?.touched}">
+                    @if (createForm.get('username')?.invalid && createForm.get('username')?.touched) {
+                        <small class="text-red-500">Email invalide ou manquant</small>
+                    }
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Rôle</label>
+                    <p-select 
+                        [options]="roles" 
+                        formControlName="roleName" 
+                        placeholder="Sélectionnez un rôle" 
+                        styleClass="w-full rounded-xl border-slate-200"
+                        appendTo="body">
+                    </p-select>
+                    @if (createForm.get('roleName')?.invalid && createForm.get('roleName')?.touched) {
+                        <small class="text-red-500">Le rôle est requis</small>
+                    }
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <p-button label="Annuler" styleClass="p-button-text text-slate-500 hover:bg-slate-100 rounded-xl" (onClick)="closeDialog()"></p-button>
+                    <p-button type="submit" label="Créer l'utilisateur" icon="pi pi-check" [loading]="isSubmitting()" [disabled]="createForm.invalid" styleClass="bg-gradient-to-r from-emerald-500 to-blue-500 border-none rounded-xl px-6 shadow-md shadow-emerald-500/20"></p-button>
+                </div>
+            </form>
+        } @else {
+            <div class="py-6 flex flex-col items-center text-center space-y-4">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full flex items-center justify-center text-3xl mb-2">
+                    <i class="pi pi-check"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">Compte créé avec succès !</h3>
+                <p class="text-slate-500 dark:text-slate-400 text-sm max-w-sm">Veuillez transmettre ce mot de passe temporaire à l'utilisateur de manière sécurisée. <strong class="text-amber-600">Il ne sera plus affiché.</strong></p>
+                
+                <div class="w-full mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <span class="font-mono text-lg font-bold tracking-wider text-slate-800 dark:text-slate-200 select-all">{{ tempPassword() }}</span>
+                    <button (click)="copyPassword()" class="p-2 text-slate-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" pTooltip="Copier" tooltipPosition="top">
+                        <i class="pi pi-copy text-xl"></i>
+                    </button>
+                </div>
+
+                <p-button label="Fermer" (onClick)="closeDialog()" styleClass="mt-6 w-full p-button-outlined rounded-xl"></p-button>
+            </div>
+        }
+    </p-dialog>
+
+    <!-- Modal Assigner Mission -->
+    <p-dialog 
+        header="Assigner une Mission" 
+        [(visible)]="showAssignMissionDialog" 
+        [modal]="true" 
+        [style]="{width: '100%', maxWidth: '500px'}" 
+        [draggable]="false" 
+        [resizable]="false"
+        styleClass="rounded-2xl overflow-hidden shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        
+        <div class="mt-4 space-y-6">
+            <div class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center font-bold text-lg">
+                    {{ selectedAdminUser()?.username?.charAt(0)?.toUpperCase() }}
+                </div>
+                <div>
+                    <p class="font-bold text-slate-800 dark:text-slate-200">{{ selectedAdminUser()?.name }} {{ selectedAdminUser()?.surname }}</p>
+                    <p class="text-xs text-slate-500">{{ selectedAdminUser()?.username }}</p>
+                </div>
+            </div>
+
+            <!-- Missions Assignées -->
+            <div class="flex flex-col gap-2">
+                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Missions actuellement assignées</label>
+                @if (assignedMissions().length === 0) {
+                    <p class="text-xs text-slate-500 italic pl-1">Aucune mission assignée à cet administrateur.</p>
+                } @else {
+                    <div class="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                        @for (mission of assignedMissions(); track mission.codeMission) {
+                            <div class="p-3 rounded-xl border bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                <div>
+                                    <p class="font-bold text-slate-800 dark:text-slate-200">{{ mission.codeMission }}</p>
+                                    <p class="text-xs text-slate-500">{{ mission.codeDossier }} - Ex: {{ mission.exercice }}</p>
+                                </div>
+                                <button 
+                                    (click)="onUnassignMission(mission.codeMission!)"
+                                    pTooltip="Retirer l'assignation"
+                                    tooltipPosition="top"
+                                    class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30">
+                                    <i class="pi pi-trash"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="font-bold text-slate-700 dark:text-slate-300 text-sm">Sélectionner une nouvelle mission planifiée à assigner</label>
+                
+                @if (loadingMissions()) {
+                    <div class="flex items-center justify-center p-4">
+                        <i class="pi pi-spin pi-spinner text-blue-500 text-xl"></i>
+                    </div>
+                } @else if (availableMissions().length === 0) {
+                    <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm text-center">
+                        Aucune mission planifiée disponible pour assignation.
+                    </div>
+                } @else {
+                    <div class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                        @for (mission of availableMissions(); track mission.codeMission) {
+                            <div 
+                                (click)="selectedMissionCode.set(mission.codeMission!)"
+                                class="p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between"
+                                [ngClass]="selectedMissionCode() === mission.codeMission ? 'bg-blue-50 border-blue-500 dark:bg-blue-900/20 dark:border-blue-500' : 'bg-white border-slate-200 hover:border-blue-300 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-blue-500'">
+                                <div>
+                                    <p class="font-bold text-slate-800 dark:text-slate-200">{{ mission.codeMission }}</p>
+                                    <p class="text-xs text-slate-500">{{ mission.codeDossier }} - Ex: {{ mission.exercice }}</p>
+                                </div>
+                                @if (selectedMissionCode() === mission.codeMission) {
+                                    <i class="pi pi-check-circle text-blue-600 text-xl"></i>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <p-button label="Annuler" styleClass="p-button-text text-slate-500 hover:bg-slate-100 rounded-xl" (onClick)="closeAssignDialog()"></p-button>
+                <p-button 
+                    label="Assigner" 
+                    icon="pi pi-check" 
+                    [loading]="isAssigning()" 
+                    [disabled]="!selectedMissionCode() || availableMissions().length === 0" 
+                    (onClick)="onAssignMission()"
+                    styleClass="bg-gradient-to-r from-blue-500 to-indigo-500 border-none rounded-xl px-6 shadow-md shadow-blue-500/20">
+                </p-button>
+            </div>
+        </div>
+    </p-dialog>
+</div>
